@@ -12,7 +12,7 @@ import controller.Controller;
 
 /**
  *
- * @author CT-Master Electricia
+ * @author Ben Polson
  */
 public class SnakeGUI extends javax.swing.JFrame {
     

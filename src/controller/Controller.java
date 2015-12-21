@@ -8,7 +8,7 @@ package controller;
 import view.SnakeGUI;
 /**
  *
- * @author CT-Master Electricia
+ * @author Ben Polson
  */
 public class Controller {
     private SnakeGUI view;
