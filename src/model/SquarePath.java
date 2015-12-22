@@ -5,8 +5,6 @@
  */
 package model;
 
-import java.util.ArrayList;
-
 /**
  *
  * @author Ben Polson
@@ -20,6 +18,12 @@ public class SquarePath {
     private int currX;
     private int currY;
     private int currCount;
+    
+    static final int UNKNOWN = 0; // unknown flags
+    static final int INSIDE = 1; // no known flags for coord
+    static final int OUT_PATH = 2; // coord is not part of curr path
+    static final int OUT_BOUNDS = 4; // coord is out of xMax etc. bounds
+    static final int OUT_BUFF = 8; // coord is outside of buffer.
     
     public SquarePath() {
         xMax = 0;
@@ -67,18 +71,62 @@ public class SquarePath {
        (-1, 0)
        are in quadrant 2 and that leaves anything of the form
        (-2, -6) in quadrant 3.*/
-    public int getValue(int x, int y) {
-        return field[SquarePath.getQuad(x, y)][Math.abs(x)][Math.abs(y)];
-    }
-    private void setValue(int x, int y, int value) {
-        field[SquarePath.getQuad(x, y)][Math.abs(x)][Math.abs(y)] = value;
-    }
-    private static int getQuad(int x, int y) {
+    static int getQuad(int x, int y) {
         return ((2 * x + 1) / Math.abs(2 * x + 1) - 1) / (-1) + 
                 ((2 * y + 1) / Math.abs(2 * y + 1) - 1) / (-2);
     }
-    private int getBuff() {
+    int getBuff() {
         return field[0].length;
+    }
+    public int getValue(int x, int y) {
+        int status = this.getStatus(x, y);
+        if((status & SquarePath.INSIDE) != 0) {
+            return field[SquarePath.getQuad(x, y)][Math.abs(x)][Math.abs(y)];
+        }
+        return (status + SquarePath.OUT_PATH) * -1;
+    }
+    void setValue(int x, int y, int value) {
+        field[SquarePath.getQuad(x, y)][Math.abs(x)][Math.abs(y)] = value;
+    }
+    public int getXMax() {
+        return xMax;
+    }
+    public int getXMin() {
+        return xMin;
+    }
+    public int getYMax() {
+        return yMax;
+    }
+    public int getYMin() {
+        return yMin;
+    }
+    public int getWidth() {
+        return xMax - xMin + 1;
+    }
+    public int getHeight() {
+        return yMax - yMin + 1;
+    }
+    public int getCurrX() {
+        return currX;
+    }
+    public int getCurrY() {
+        return currY;
+    }
+    public int getCurrCount() {
+        return currCount;
+    }
+    int getStatus(int x, int y) {
+        int status = SquarePath.UNKNOWN;
+        if(x <= xMax && x >= xMin && y <= yMax && y >= yMin) {
+            status += SquarePath.INSIDE;
+        } else {
+            status += SquarePath.OUT_BOUNDS;
+        }
+        if (!(Math.abs(x) < this.getBuff() && 
+                Math.abs(y) < this.getBuff())) {
+            status += SquarePath.OUT_BUFF;
+        }
+        return status;
     }
     public void pushNorth() {
         yMax++;
@@ -146,7 +194,7 @@ public class SquarePath {
     }
     /* does not catch nonfields and if newBuff is smaller than the old
        buffer.*/
-    private static int[][][] plantField(int[][][] smallField, int newBuff) {
+    static int[][][] plantField(int[][][] smallField, int newBuff) {
         int[][][] bigField = new int[4][newBuff][newBuff];
         for (int quad = 0; quad < smallField.length; quad++) {
             for (int x = 0; x < newBuff; x++) {
@@ -160,6 +208,6 @@ public class SquarePath {
                 }
             }
         }
-        return null;
+        return bigField;
     }
 }
